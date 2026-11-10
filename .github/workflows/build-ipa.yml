@@ -14,6 +14,10 @@ jobs:
       - name: Unpack archive
         run: unzip -q tg-ios.zip
 
+      - name: Use TDLibKit from main branch
+        working-directory: tg-ios
+        run: sed -i '' 's/from: 1.5.0/branch: main/' project.yml
+
       - name: Install XcodeGen
         run: brew install xcodegen
 
