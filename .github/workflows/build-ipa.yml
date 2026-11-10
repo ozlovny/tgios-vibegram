@@ -16,7 +16,9 @@ jobs:
 
       - name: Use TDLibKit from main branch
         working-directory: tg-ios
-        run: sed -i '' 's/from: 1.5.0/branch: main/' project.yml
+        run: |
+          sed -i '' 's|from: 1.5.0|branch: main|' project.yml
+          grep -n "branch" project.yml
 
       - name: Install XcodeGen
         run: brew install xcodegen
