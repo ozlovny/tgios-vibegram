@@ -1,0 +1,50 @@
+name: Build IPA
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Unpack archive
+        run: unzip -q tg-ios.zip
+
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Generate Xcode project
+        working-directory: tg-ios
+        run: xcodegen
+
+      - name: Resolve Swift packages
+        working-directory: tg-ios
+        run: xcodebuild -resolvePackageDependencies -project TGClient.xcodeproj -scheme TGClient
+
+      - name: Build (unsigned)
+        working-directory: tg-ios
+        run: |
+          xcodebuild \
+            -project TGClient.xcodeproj \
+            -scheme TGClient \
+            -configuration Release \
+            -sdk iphoneos \
+            -destination 'generic/platform=iOS' \
+            -derivedDataPath build \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY=""
+
+      - name: Package IPA
+        working-directory: tg-ios
+        run: |
+          mkdir Payload
+          cp -R build/Build/Products/Release-iphoneos/TGClient.app Payload/
+          zip -qr TGClient.ipa Payload
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: TGClient-ipa
+          path: tg-ios/TGClient.ipa
